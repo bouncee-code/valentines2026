@@ -1,201 +1,155 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
-const CLAMP_MARGIN = 8;
-const HEARTS_COUNT = 32;
-
-function clamp(value, min, max) {
-  return Math.min(Math.max(value, min), max);
-}
+const HEART_COUNT = 42;
 
 export default function HomePage() {
-  const noButtonRef = useRef(null);
-  const yesButtonRef = useRef(null);
   const areaRef = useRef(null);
-
-  const [noPosition, setNoPosition] = useState({ x: 0, y: 0 });
-  const [positionReady, setPositionReady] = useState(false);
+  const noRef = useRef(null);
+  const pointerRef = useRef({ x: 0, y: 0 });
+  const [noPos, setNoPos] = useState({ x: 0, y: 0 });
   const [accepted, setAccepted] = useState(false);
-  const [heartsBurst, setHeartsBurst] = useState([]);
+  const [heartBurst, setHeartBurst] = useState(0);
 
-  const moveNoButton = useCallback((cursorX, cursorY) => {
-    const noEl = noButtonRef.current;
-    const areaEl = areaRef.current;
-    if (!noEl || !areaEl) return;
+  const hearts = useMemo(
+    () =>
+      Array.from({ length: HEART_COUNT }, (_, i) => ({
+        id: `${heartBurst}-${i}`,
+        left: 8 + Math.random() * 84,
+        delay: Math.random() * 0.55,
+        duration: 1.6 + Math.random() * 1.4,
+        size: 18 + Math.random() * 26,
+        sway: (Math.random() - 0.5) * 80
+      })),
+    [heartBurst]
+  );
 
-    const areaRect = areaEl.getBoundingClientRect();
-    const noRect = noEl.getBoundingClientRect();
+  const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
-    const centerX = noRect.left + noRect.width / 2;
-    const centerY = noRect.top + noRect.height / 2;
+  const dodgeNo = useCallback((pointer) => {
+    const area = areaRef.current;
+    const noBtn = noRef.current;
+    if (!area || !noBtn || accepted) {
+      return;
+    }
 
-    let dx = centerX - cursorX;
-    let dy = centerY - cursorY;
-
-    const magnitude = Math.hypot(dx, dy) || 1;
-    dx /= magnitude;
-    dy /= magnitude;
-
-    const scootDistance = Math.min(130, areaRect.width * 0.28);
-
-    const maxX = areaRect.width - noRect.width - CLAMP_MARGIN;
-    const maxY = areaRect.height - noRect.height - CLAMP_MARGIN;
+    const areaRect = area.getBoundingClientRect();
+    const noRect = noBtn.getBoundingClientRect();
+    const margin = 12;
 
     const currentX = noRect.left - areaRect.left;
     const currentY = noRect.top - areaRect.top;
 
-    let nextX = clamp(currentX + dx * scootDistance, CLAMP_MARGIN, maxX);
-    let nextY = clamp(currentY + dy * scootDistance, CLAMP_MARGIN, maxY);
+    const centerX = currentX + noRect.width / 2;
+    const centerY = currentY + noRect.height / 2;
 
-    if (Math.abs(nextX - currentX) < 4 && Math.abs(nextY - currentY) < 4) {
-      nextX = clamp(Math.random() * maxX, CLAMP_MARGIN, maxX);
-      nextY = clamp(Math.random() * maxY, CLAMP_MARGIN, maxY);
-    }
+    const dx = centerX - pointer.x;
+    const dy = centerY - pointer.y;
+    const dist = Math.hypot(dx, dy) || 1;
+    const runDistance = 95;
 
-    setNoPosition({ x: nextX, y: nextY });
-  }, []);
+    let nextX = currentX + (dx / dist) * runDistance;
+    let nextY = currentY + (dy / dist) * runDistance;
 
-  const maybeScootNo = useCallback(
+    const maxX = areaRect.width - noRect.width - margin;
+    const maxY = areaRect.height - noRect.height - margin;
+
+    nextX = clamp(nextX, margin, maxX);
+    nextY = clamp(nextY, margin, maxY);
+
+    setNoPos({ x: nextX, y: nextY });
+  }, [accepted]);
+
+  const handlePointerMove = useCallback(
     (event) => {
-      if (accepted) return;
-      const noEl = noButtonRef.current;
-      if (!noEl) return;
+      const area = areaRef.current;
+      const noBtn = noRef.current;
+      if (!area || !noBtn || accepted) {
+        return;
+      }
 
-      const rect = noEl.getBoundingClientRect();
-      const cx = event.clientX;
-      const cy = event.clientY;
+      const areaRect = area.getBoundingClientRect();
+      const noRect = noBtn.getBoundingClientRect();
+      const pointer = {
+        x: event.clientX - areaRect.left,
+        y: event.clientY - areaRect.top
+      };
+      pointerRef.current = pointer;
 
-      const distance = Math.hypot(cx - (rect.left + rect.width / 2), cy - (rect.top + rect.height / 2));
-      const nearThreshold = Math.max(70, rect.width * 0.9);
+      const centerX = noRect.left - areaRect.left + noRect.width / 2;
+      const centerY = noRect.top - areaRect.top + noRect.height / 2;
+      const proximity = Math.hypot(centerX - pointer.x, centerY - pointer.y);
 
-      if (distance <= nearThreshold) {
-        moveNoButton(cx, cy);
+      if (proximity < 105) {
+        dodgeNo(pointer);
       }
     },
-    [accepted, moveNoButton]
+    [accepted, dodgeNo]
   );
 
-  useEffect(() => {
-    const noEl = noButtonRef.current;
-    const areaEl = areaRef.current;
-    const yesEl = yesButtonRef.current;
-    if (!noEl || !areaEl || !yesEl || positionReady) return;
-
-    const areaRect = areaEl.getBoundingClientRect();
-    const yesRect = yesEl.getBoundingClientRect();
-
-    const noX = clamp(yesRect.right - areaRect.left + 16, CLAMP_MARGIN, areaRect.width - noEl.offsetWidth - CLAMP_MARGIN);
-    const noY = clamp(yesRect.top - areaRect.top, CLAMP_MARGIN, areaRect.height - noEl.offsetHeight - CLAMP_MARGIN);
-
-    setNoPosition({ x: noX, y: noY });
-    setPositionReady(true);
-  }, [positionReady]);
-
-  useEffect(() => {
-    if (!positionReady) return;
-
-    const handleMove = (event) => maybeScootNo(event);
-    window.addEventListener('pointermove', handleMove, { passive: true });
-
-    return () => {
-      window.removeEventListener('pointermove', handleMove);
-    };
-  }, [maybeScootNo, positionReady]);
-
-  useEffect(() => {
-    const handleResize = () => {
-      const areaEl = areaRef.current;
-      const noEl = noButtonRef.current;
-      if (!areaEl || !noEl) return;
-      const areaRect = areaEl.getBoundingClientRect();
-      const maxX = areaRect.width - noEl.offsetWidth - CLAMP_MARGIN;
-      const maxY = areaRect.height - noEl.offsetHeight - CLAMP_MARGIN;
-      setNoPosition((prev) => ({
-        x: clamp(prev.x, CLAMP_MARGIN, maxX),
-        y: clamp(prev.y, CLAMP_MARGIN, maxY)
-      }));
-    };
-
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
-  }, []);
-
-  const generateHearts = useCallback(() => {
-    const hearts = Array.from({ length: HEARTS_COUNT }, (_, i) => ({
-      id: `${Date.now()}-${i}`,
-      left: Math.random() * 100,
-      delay: Math.random() * 0.6,
-      duration: 1.8 + Math.random() * 1.8,
-      size: 16 + Math.random() * 26,
-      drift: (Math.random() - 0.5) * 120
-    }));
-
-    setHeartsBurst(hearts);
-    window.setTimeout(() => setHeartsBurst([]), 3600);
-  }, []);
-
-  const romanticSubtext = useMemo(
-    () =>
-      accepted
-        ? 'Yaaay! 💖✨ You made my heart do happy cartwheels!'
-        : 'Will you be my Valentine? 🌹🥰',
-    [accepted]
-  );
-
-  const onYesClick = () => {
-    if (accepted) return;
+  const onYes = () => {
     setAccepted(true);
-    generateHearts();
+    setHeartBurst((count) => count + 1);
+  };
+
+  const triggerNoEscape = (event) => {
+    event.preventDefault();
+    dodgeNo(pointerRef.current);
   };
 
   return (
     <main className="page">
-      <section className="card" ref={areaRef}>
-        <p className="eyebrow">💕 Hey cutie pie! 💕</p>
-        <h1>Valentine vibes only 💘</h1>
-        <p className="subtext">{romanticSubtext}</p>
+      <section
+        className={`card ${accepted ? 'accepted' : ''}`}
+        ref={areaRef}
+        onMouseMove={handlePointerMove}
+        onTouchMove={handlePointerMove}
+      >
+        <p className="kicker">💘 Hey cutie 💘</p>
+        <h1>Will you be my Valentine? 🥰</h1>
+        <p className="subtitle">You + me + snacks + movie magic = perfect date night 🍿✨</p>
 
-        <div className="buttonZone">
-          <button ref={yesButtonRef} className={`btn yes ${accepted ? 'celebrate' : ''}`} onClick={onYesClick}>
-            Yes 💞
+        <div className={`buttons ${accepted ? 'done' : ''}`}>
+          <button className="btn yes" onClick={onYes} type="button">
+            Yes 💖
           </button>
-          <button
-            ref={noButtonRef}
-            className="btn no"
-            style={{ transform: `translate(${noPosition.x}px, ${noPosition.y}px)` }}
-            onMouseEnter={(event) => maybeScootNo(event)}
-            onPointerDown={(event) => {
-              event.preventDefault();
-              maybeScootNo(event);
-            }}
-            aria-label="No"
-            type="button"
-          >
-            No 🙈
-          </button>
-        </div>
-
-        <div className={`message ${accepted ? 'show' : ''}`}>
-          Best decision ever. I love you Be ready for a movie on February 14.
-        </div>
-
-        <div className="floatingHearts" aria-hidden="true">
-          {heartsBurst.map((heart) => (
-            <span
-              key={heart.id}
-              className="heart"
-              style={{
-                left: `${heart.left}%`,
-                animationDelay: `${heart.delay}s`,
-                animationDuration: `${heart.duration}s`,
-                fontSize: `${heart.size}px`,
-                '--drift': `${heart.drift}px`
-              }}
+          {!accepted && (
+            <button
+              className="btn no"
+              onMouseEnter={triggerNoEscape}
+              onClick={triggerNoEscape}
+              onTouchStart={triggerNoEscape}
+              ref={noRef}
+              style={{ transform: `translate(${noPos.x}px, ${noPos.y}px)` }}
+              type="button"
             >
-              💖
-            </span>
-          ))}
+              No 🙈
+            </button>
+          )}
+        </div>
+
+        <p className={`message ${accepted ? 'show' : ''}`}>
+          Best decision ever. I love you Be ready for a movie on February 14.
+        </p>
+
+        <div className={`heart-layer ${accepted ? 'show' : ''}`} aria-hidden="true">
+          {accepted &&
+            hearts.map((heart) => (
+              <span
+                className="heart"
+                key={heart.id}
+                style={{
+                  left: `${heart.left}%`,
+                  animationDelay: `${heart.delay}s`,
+                  animationDuration: `${heart.duration}s`,
+                  fontSize: `${heart.size}px`,
+                  '--sway': `${heart.sway}px`
+                }}
+              >
+                💖
+              </span>
+            ))}
         </div>
       </section>
     </main>

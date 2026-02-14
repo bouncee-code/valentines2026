@@ -1,8 +1,8 @@
 import './globals.css';
 
 export const metadata = {
-  title: 'Valentine 💘',
-  description: 'A cute romantic valentine website'
+  title: 'Valentine Vibes 💖',
+  description: 'A cute and romantic Valentine website'
 };
 
 export default function RootLayout({ children }) {

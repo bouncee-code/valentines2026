@@ -8,105 +8,107 @@
 
 body {
   margin: 0;
+  min-height: 100vh;
   font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
-  background: radial-gradient(circle at top, #ffe6f3 0%, #ffd4ec 36%, #ffc6e8 100%);
-  color: #6a1640;
+  background: radial-gradient(circle at top, #ffd8eb 0%, #ffc1df 40%, #ffacd4 100%);
+  color: #5a1035;
 }
 
 .page {
   min-height: 100vh;
   display: grid;
   place-items: center;
-  padding: 1.25rem;
+  padding: 1rem;
 }
 
 .card {
-  width: min(680px, 96vw);
-  min-height: 390px;
-  padding: clamp(1.2rem, 4vw, 2rem);
-  background: rgba(255, 255, 255, 0.82);
-  backdrop-filter: blur(4px);
-  border: 2px solid rgba(255, 255, 255, 0.8);
-  border-radius: 26px;
-  box-shadow: 0 16px 48px rgba(148, 26, 83, 0.22);
   position: relative;
+  width: min(760px, 100%);
+  min-height: 440px;
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.87);
+  box-shadow: 0 24px 50px rgba(180, 40, 96, 0.25);
+  padding: clamp(1.2rem, 3vw, 2rem);
   overflow: hidden;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
 }
 
-.eyebrow {
-  margin: 0 0 0.5rem;
-  font-weight: 700;
+.card.accepted {
+  transform: translateY(-3px);
+  box-shadow: 0 30px 56px rgba(180, 40, 96, 0.34);
+}
+
+.kicker {
+  margin: 0;
+  font-size: 1rem;
   letter-spacing: 0.03em;
 }
 
 h1 {
+  margin: 0.45rem 0;
+  font-size: clamp(1.65rem, 6vw, 2.4rem);
+  line-height: 1.15;
+}
+
+.subtitle {
   margin: 0;
-  font-size: clamp(1.7rem, 4.6vw, 2.7rem);
-  line-height: 1.1;
+  font-size: clamp(1rem, 3vw, 1.2rem);
+  max-width: 40ch;
 }
 
-.subtext {
-  margin: 0.9rem 0 1.6rem;
-  font-size: clamp(1rem, 2.8vw, 1.2rem);
-}
-
-.buttonZone {
+.buttons {
   position: relative;
-  min-height: 170px;
+  display: flex;
+  align-items: center;
+  gap: 0.85rem;
+  margin-top: 1.8rem;
+  min-height: 220px;
 }
 
 .btn {
-  appearance: none;
   border: none;
   border-radius: 999px;
-  cursor: pointer;
-  padding: 0.72rem 1.45rem;
-  font-size: clamp(1rem, 3vw, 1.1rem);
+  padding: 0.85rem 1.45rem;
+  font-size: 1.02rem;
   font-weight: 700;
-  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+  cursor: pointer;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active {
+  transform: scale(0.97);
+}
+
+.btn.yes {
+  z-index: 4;
+  background: linear-gradient(145deg, #ff4989, #f72578);
+  color: #fff;
+  box-shadow: 0 10px 24px rgba(216, 17, 101, 0.4);
+}
+
+.btn.yes:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.03);
+}
+
+.btn.no {
   position: absolute;
-  touch-action: manipulation;
-}
-
-.btn:focus-visible {
-  outline: 3px solid #ff8fc5;
-  outline-offset: 3px;
-}
-
-.yes {
-  left: 0;
+  left: 126px;
   top: 0;
-  background: linear-gradient(145deg, #ff4da0, #ff6cb4);
-  color: white;
-  box-shadow: 0 10px 24px rgba(212, 42, 123, 0.35);
-}
-
-.yes:hover,
-.yes:active {
-  transform: translateY(-2px) scale(1.03);
-}
-
-.yes.celebrate {
-  background: linear-gradient(145deg, #ff2f95, #ff52a8);
-  box-shadow: 0 14px 28px rgba(212, 42, 123, 0.45);
-}
-
-.no {
-  left: 0;
-  top: 0;
-  background: white;
-  color: #8c2455;
-  box-shadow: 0 8px 20px rgba(122, 22, 73, 0.2);
+  z-index: 3;
+  background: #fff;
+  color: #a3275f;
+  box-shadow: 0 8px 20px rgba(164, 39, 95, 0.2);
 }
 
 .message {
-  margin-top: 1rem;
-  font-size: clamp(1rem, 2.6vw, 1.15rem);
-  font-weight: 600;
+  margin-top: 0.9rem;
+  font-size: clamp(1.03rem, 3.1vw, 1.25rem);
+  font-weight: 700;
   opacity: 0;
   transform: translateY(8px);
-  transition: opacity 360ms ease, transform 360ms ease;
-  max-width: 55ch;
+  transition: opacity 0.45s ease, transform 0.45s ease;
 }
 
 .message.show {
@@ -114,42 +116,58 @@ h1 {
   transform: translateY(0);
 }
 
-.floatingHearts {
+.heart-layer {
   pointer-events: none;
   position: absolute;
   inset: 0;
   overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.heart-layer.show {
+  opacity: 1;
 }
 
 .heart {
   position: absolute;
-  bottom: -32px;
-  opacity: 0;
-  animation-name: floatUp;
+  bottom: -12%;
+  animation-name: floatHeart;
   animation-timing-function: ease-out;
   animation-fill-mode: forwards;
+  text-shadow: 0 3px 10px rgba(163, 35, 89, 0.25);
 }
 
-@keyframes floatUp {
+@keyframes floatHeart {
   0% {
-    transform: translate3d(0, 0, 0) scale(0.9) rotate(0deg);
     opacity: 0;
+    transform: translate3d(0, 0, 0) scale(0.55);
   }
+
   12% {
     opacity: 1;
   }
+
   100% {
-    transform: translate3d(var(--drift), -115vh, 0) scale(1.18) rotate(16deg);
     opacity: 0;
+    transform: translate3d(var(--sway), -430px, 0) scale(1.16);
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 540px) {
   .card {
-    min-height: 430px;
+    min-height: 500px;
   }
 
-  .buttonZone {
-    min-height: 210px;
+  .buttons {
+    min-height: 260px;
+  }
+
+  .btn {
+    font-size: 1rem;
+  }
+
+  .btn.no {
+    left: 112px;
   }
 }
