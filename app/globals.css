@@ -1,0 +1,155 @@
+:root {
+  color-scheme: light;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  background: radial-gradient(circle at top, #ffe6f3 0%, #ffd4ec 36%, #ffc6e8 100%);
+  color: #6a1640;
+}
+
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 1.25rem;
+}
+
+.card {
+  width: min(680px, 96vw);
+  min-height: 390px;
+  padding: clamp(1.2rem, 4vw, 2rem);
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(4px);
+  border: 2px solid rgba(255, 255, 255, 0.8);
+  border-radius: 26px;
+  box-shadow: 0 16px 48px rgba(148, 26, 83, 0.22);
+  position: relative;
+  overflow: hidden;
+}
+
+.eyebrow {
+  margin: 0 0 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+h1 {
+  margin: 0;
+  font-size: clamp(1.7rem, 4.6vw, 2.7rem);
+  line-height: 1.1;
+}
+
+.subtext {
+  margin: 0.9rem 0 1.6rem;
+  font-size: clamp(1rem, 2.8vw, 1.2rem);
+}
+
+.buttonZone {
+  position: relative;
+  min-height: 170px;
+}
+
+.btn {
+  appearance: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  padding: 0.72rem 1.45rem;
+  font-size: clamp(1rem, 3vw, 1.1rem);
+  font-weight: 700;
+  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+  position: absolute;
+  touch-action: manipulation;
+}
+
+.btn:focus-visible {
+  outline: 3px solid #ff8fc5;
+  outline-offset: 3px;
+}
+
+.yes {
+  left: 0;
+  top: 0;
+  background: linear-gradient(145deg, #ff4da0, #ff6cb4);
+  color: white;
+  box-shadow: 0 10px 24px rgba(212, 42, 123, 0.35);
+}
+
+.yes:hover,
+.yes:active {
+  transform: translateY(-2px) scale(1.03);
+}
+
+.yes.celebrate {
+  background: linear-gradient(145deg, #ff2f95, #ff52a8);
+  box-shadow: 0 14px 28px rgba(212, 42, 123, 0.45);
+}
+
+.no {
+  left: 0;
+  top: 0;
+  background: white;
+  color: #8c2455;
+  box-shadow: 0 8px 20px rgba(122, 22, 73, 0.2);
+}
+
+.message {
+  margin-top: 1rem;
+  font-size: clamp(1rem, 2.6vw, 1.15rem);
+  font-weight: 600;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 360ms ease, transform 360ms ease;
+  max-width: 55ch;
+}
+
+.message.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.floatingHearts {
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.heart {
+  position: absolute;
+  bottom: -32px;
+  opacity: 0;
+  animation-name: floatUp;
+  animation-timing-function: ease-out;
+  animation-fill-mode: forwards;
+}
+
+@keyframes floatUp {
+  0% {
+    transform: translate3d(0, 0, 0) scale(0.9) rotate(0deg);
+    opacity: 0;
+  }
+  12% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--drift), -115vh, 0) scale(1.18) rotate(16deg);
+    opacity: 0;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    min-height: 430px;
+  }
+
+  .buttonZone {
+    min-height: 210px;
+  }
+}
